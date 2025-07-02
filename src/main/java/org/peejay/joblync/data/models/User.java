@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Entity
 @Data
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,18 +23,4 @@ public class User {
     private String profilePicture;
     private LocalDateTime dateJoined;
     private boolean isActive = true;
-
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Applicant applicant;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Recruiter recruiter;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private HR_Manager hiringManager;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Employee employee;
-
 }
