@@ -1,6 +1,7 @@
 package org.peejay.joblync.data.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
@@ -13,4 +14,7 @@ public class Applicant extends User {
     private String portfolioUrl;
     private ApplicationStatus status;
     private LocalDateTime applicationDate;
+    @ManyToOne
+    private JobPosting jobPosting;
+
 }

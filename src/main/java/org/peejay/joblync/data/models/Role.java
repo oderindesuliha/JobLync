@@ -1,7 +1,7 @@
 package org.peejay.joblync.data.models;
 
 public enum Role {
-    APPLICATION_ADMIN,
+    APPLICANT,
     EMPLOYEE,
     HR_MANAGER,
     RECRUITER,
