@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 public class JobPosting {
     @Id
-    private Long id;
+    private String id;
     private String jobTitle;
     private String companyName;
     private String jobDescription;

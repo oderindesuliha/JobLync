@@ -7,12 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
+public interface ApplicantRepository extends JpaRepository<Applicant, String> {
     boolean existsByEmail(String email);
     boolean existsByPhoneNumber(String phoneNumber);
     Applicant findByEmail(String email);
     List<Applicant> findByStatus(ApplicationStatus status);
-    List<Applicant> findByJobTitle(String jobTitle);
 
 
 

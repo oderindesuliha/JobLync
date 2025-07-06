@@ -5,12 +5,13 @@ import org.peejay.joblync.dtos.requests.UserLoginRequest;
 import org.peejay.joblync.dtos.requests.UserRegisterRequest;
 import org.peejay.joblync.dtos.requests.subAdminRequest;
 import org.peejay.joblync.dtos.responses.JwtResponse;
+import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 
 import java.util.List;
 
 
 public interface UserService {
-    UserRegisterRequest registerUser(UserRegisterRequest request);
+    UserRegisterResponse registerUser(UserRegisterRequest request);
     JwtResponse login(UserLoginRequest loginRequest);
     UserRegisterRequest getUserByEmail(String email);
     void logout(String email);
