@@ -1,13 +1,15 @@
 package org.peejay.joblync.dtos.responses;
 
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 import org.peejay.joblync.data.models.Role;
 
 @Data
 public class UserRegisterResponse {
 
-    private Long userId;
+    private String userId;
     private String firstName;
     private String lastName;
     private String phoneNumber;

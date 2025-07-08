@@ -1,5 +1,7 @@
 package org.peejay.joblync.dtos.requests;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.peejay.joblync.data.models.Role;

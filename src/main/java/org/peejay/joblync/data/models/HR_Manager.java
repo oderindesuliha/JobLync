@@ -13,6 +13,7 @@ import java.util.List;
 public class HR_Manager extends User {
     private String teamName;
     private boolean isSenior;
-    @OneToMany
-    private List<Applicant> applicants;
+    @OneToMany(mappedBy = "hrManager")
+    private List<Employee> employees;
+
 }

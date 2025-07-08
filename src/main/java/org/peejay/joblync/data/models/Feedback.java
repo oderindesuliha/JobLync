@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 public class Feedback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
     @ManyToOne
     private  HR_Manager manager;
-
+    @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
     private String comments;
     private LocalDateTime feedbackDate;

@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @Entity
 public class JobPosting {
     @Id
-    private String id;
+    private Long id;
     private String jobTitle;
     private String companyName;
     private String jobDescription;
-
+    @Enumerated(EnumType.STRING)
     private JobStatus status;
     private LocalDateTime postDate;
     private LocalDateTime deadLine;

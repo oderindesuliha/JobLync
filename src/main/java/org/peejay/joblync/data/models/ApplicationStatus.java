@@ -1,12 +1,12 @@
 package org.peejay.joblync.data.models;
 
 public enum ApplicationStatus {
-        ACTIVE,
+        PENDING,
         SHORTLISTED,
-        INTERVIEWING,
+        INTERVIEWED,
         OFFERED,
         HIRED,
-        REJECTED
+        WITHDRAWN
     }
 
 

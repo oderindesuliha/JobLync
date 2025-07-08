@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface JobPostingRepository extends JpaRepository <JobPosting, String> {
+public interface JobPostingRepository extends JpaRepository <JobPosting, Long> {
     List<JobPosting> findByCompanyName(String companyName);
 
     List<JobPosting> findByCompanyNameAndJobTitle(String companyName, String jobTitle);

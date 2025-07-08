@@ -1,51 +1,52 @@
 package org.peejay.joblync.Config;
 
 import lombok.RequiredArgsConstructor;
+import org.peejay.joblync.data.models.Admin;
 import org.peejay.joblync.data.models.Role;
-import org.peejay.joblync.data.models.User;
 import org.peejay.joblync.data.repositories.UserRepository;
-import org.peejay.joblync.security.JwtUtil;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class AdminConfig implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final AppAdminProperties adminProps;
 
     @Override
     public void run(String... args) {
-        if (!userRepository.existsByEmail("oderindesuliha@joblync.com")){
+       String adminEmail = adminProps.getAdmin().getEmail();
+       String subAdminEmail = adminProps.getSubadmin().getEmail();
 
-            User admin = new User();
-            admin.setEmail("oderindesuliha@joblync.com");
-            admin.setPassword(passwordEncoder.encode("admin1"));
+       if (!userRepository.existsByEmail(adminEmail)) {
+            Admin admin = new Admin();
+            admin.setEmail(adminEmail);
+            admin.setPassword(passwordEncoder.encode(adminProps.getAdmin().getPassword()));
             admin.setRole(Role.ADMIN);
             admin.setFirstName("Super");
             admin.setLastName("Admin");
             admin.setActive(true);
+            admin.setAdminLevel(adminProps.getAdmin().getLevel());
 
             userRepository.save(admin);
         }
-        if (!userRepository.existsByEmail("peejay@joblync.com")) {
 
-            User subAdmin = new User();
-            subAdmin.setEmail("peejay@sme.com");
-            subAdmin.setPassword(passwordEncoder.encode("admin2"));
+        if (!userRepository.existsByEmail(subAdminEmail)) {
+            Admin subAdmin = new Admin();
+            subAdmin.setEmail(subAdminEmail);
+            subAdmin.setPassword(passwordEncoder.encode(adminProps.getSubadmin().getPassword()));
             subAdmin.setRole(Role.ADMIN);
             subAdmin.setFirstName("Sub");
             subAdmin.setLastName("Admin");
             subAdmin.setActive(true);
+            subAdmin.setAdminLevel(adminProps.getSubadmin().getLevel());
 
             userRepository.save(subAdmin);
         }
-
-
     }
-
-
 }
