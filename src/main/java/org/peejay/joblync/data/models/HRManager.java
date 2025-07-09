@@ -1,6 +1,7 @@
 package org.peejay.joblync.data.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,10 +11,10 @@ import java.util.List;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-public class HR_Manager extends User {
+public class HRManager extends User {
     private String teamName;
     private boolean isSenior;
-    @OneToMany(mappedBy = "hrManager")
+    @JoinColumn
     private List<Employee> employees;
 
 }

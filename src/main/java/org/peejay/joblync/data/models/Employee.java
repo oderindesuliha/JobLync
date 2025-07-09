@@ -16,6 +16,6 @@ public class Employee extends User {
     private String companyName;
     private LocalDateTime startDate;
     @ManyToOne
-    private HR_Manager hrManager;
+    private HRManager hrManager;
 
 }

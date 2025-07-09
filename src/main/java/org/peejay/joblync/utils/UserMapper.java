@@ -1,6 +1,5 @@
 package org.peejay.joblync.utils;
 
-import org.peejay.joblync.data.models.Role;
 import org.peejay.joblync.data.models.User;
 import org.peejay.joblync.dtos.requests.UserRegisterRequest;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
@@ -12,17 +11,19 @@ import java.time.LocalDateTime;
 public class UserMapper {
     public UserRegisterResponse mapRegisterResponse(User user) {
         UserRegisterResponse response = new UserRegisterResponse();
-        response.setUserId(String.valueOf(user.getId()));
+        response.setUserId(user.getId());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
         response.setPhoneNumber(user.getPhoneNumber());
         response.setEmail(user.getEmail());
+        response.setActive(user.isActive());
+        response.setDateJoined(LocalDateTime.now());
         response.setRole(user.getRole());
 
         return response;
     }
 
-    public User mapRegisterRequest(UserRegisterRequest request) {
+    public User mapToRegisterRequest(UserRegisterRequest request) {
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());

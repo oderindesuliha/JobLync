@@ -1,0 +1,9 @@
+package org.peejay.joblync.data.repositories;
+
+import org.peejay.joblync.data.models.JobApplication;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
+
+
+}

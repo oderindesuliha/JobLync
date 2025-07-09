@@ -5,16 +5,27 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
+
 @Data
 @Entity
-public class Feedback {
+@Table(name = "job_applications")
+public class JobApplication {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne
-    private  HRManager manager;
+    @JoinColumn(name = "applicant_id")
+    private Applicant applicant;
+
+    @ManyToOne
+    @JoinColumn(name = "job_posting_id")
+    private JobPosting jobPosting;
+
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
-    private String comments;
-    private LocalDateTime feedbackDate;
+
+    private LocalDateTime applicationDate = LocalDateTime.now();
+
 }

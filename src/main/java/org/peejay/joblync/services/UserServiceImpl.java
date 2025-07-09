@@ -10,9 +10,11 @@ import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.UserException;
 import org.peejay.joblync.utils.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -21,24 +23,36 @@ public class UserServiceImpl implements UserService{
     private UserRepository userRepository;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private UserMapper userMapper;
-
-
 
     @Override
     public UserRegisterResponse registerUser(UserRegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists");
         }
-        User user = userMapper.mapRegisterRequest(request);
+        User user = userMapper.mapToRegisterRequest(request);
         User savedUser = userRepository.save(user);
 
     return userMapper.mapRegisterResponse(savedUser);
     }
 
     @Override
-    public JwtResponse login(UserLoginRequest loginRequest) {
-        return null;
+    public JwtResponse login(UserLoginRequest request) {
+
+        Optional<User> userOptional =  userRepository.findByEmail(request.getEmail());
+        if (userOptional.isEmpty()) {
+            throw new UserException("Invalid email or password");
+        }
+
+        User user = userOptional.get();
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserException("Invalid email or password");
+        }
+        return new JwtResponse();
     }
 
     @Override
