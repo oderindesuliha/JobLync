@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "job_applications")
+@Table(name = "job_application")
 public class JobApplication {
 
     @Id
@@ -16,15 +16,16 @@ public class JobApplication {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "applicant_id")
+    @JoinColumn(name = "applicant")
     private Applicant applicant;
 
     @ManyToOne
-    @JoinColumn(name = "job_posting_id")
+    @JoinColumn(name = "jobPosting")
     private JobPosting jobPosting;
 
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
+
 
     private LocalDateTime applicationDate = LocalDateTime.now();
 

@@ -74,7 +74,7 @@ public class UserServiceImplTest {
         userService.registerUser(request);
 
         UserLoginRequest loginRequest = new UserLoginRequest();
-        loginRequest.setEmail(request.getEmail());
+        loginRequest.setEmail("jola@gmail.com");
         loginRequest.setPassword("jj1234");
 
         JwtResponse response = userService.login(loginRequest);

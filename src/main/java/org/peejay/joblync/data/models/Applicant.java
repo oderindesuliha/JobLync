@@ -15,7 +15,7 @@ public class Applicant extends User {
     private String resumeUrl;
     private String portfolioUrl;
 
-    @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL)
-    private List<JobApplication> applications;
+    @Enumerated(EnumType.STRING)
+    private ApplicationStatus status;
 
 }

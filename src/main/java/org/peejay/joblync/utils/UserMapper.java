@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Component
 public class UserMapper {
-    public UserRegisterResponse mapRegisterResponse(User user) {
+    public UserRegisterResponse mapToRegisterResponse(User user) {
         UserRegisterResponse response = new UserRegisterResponse();
         response.setUserId(user.getId());
         response.setFirstName(user.getFirstName());
@@ -23,7 +23,7 @@ public class UserMapper {
         return response;
     }
 
-    public User mapToRegisterRequest(UserRegisterRequest request) {
+    public User mapToUser(UserRegisterRequest request) {
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());

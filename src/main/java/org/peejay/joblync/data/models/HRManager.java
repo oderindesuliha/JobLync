@@ -14,7 +14,7 @@ import java.util.List;
 public class HRManager extends User {
     private String teamName;
     private boolean isSenior;
-    @JoinColumn
+    @OneToMany(mappedBy = "hrManager", cascade = jakarta.persistence.CascadeType.ALL)
     private List<Employee> employees;
 
 }

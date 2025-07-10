@@ -33,10 +33,10 @@ public class UserServiceImpl implements UserService{
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists");
         }
-        User user = userMapper.mapToRegisterRequest(request);
+        User user = userMapper.mapToUser(request);
         User savedUser = userRepository.save(user);
 
-    return userMapper.mapRegisterResponse(savedUser);
+    return userMapper.mapToRegisterResponse(savedUser);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserRegisterRequest getUserByEmail(String email) {
+    public UserRegisterResponse findUserByEmail(String email) {
         return null;
     }
 
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public void createSubAdmin(subAdminRequest request) {
+    public void registerSubAdmin(subAdminRequest request) {
 
     }
 

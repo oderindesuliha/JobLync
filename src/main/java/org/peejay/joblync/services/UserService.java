@@ -13,10 +13,10 @@ import java.util.List;
 public interface UserService {
     UserRegisterResponse registerUser(UserRegisterRequest request);
     JwtResponse login(UserLoginRequest loginRequest);
-    UserRegisterRequest getUserByEmail(String email);
+    UserRegisterResponse findUserByEmail(String email);
     void logout(String email);
     void updatePassword(String email, String password);
-    void createSubAdmin(subAdminRequest request);
+    void registerSubAdmin(subAdminRequest request);
     void disableUser(String email);
     void enableUser(String email);
     void deleteUser(String email);
