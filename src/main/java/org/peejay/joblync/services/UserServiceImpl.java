@@ -13,6 +13,7 @@ import org.peejay.joblync.validations.UserValidations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -34,7 +35,11 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private UserValidations userValidation;
 
+    @Autowired
+    private EmailService emailService;
+
     @Override
+    @Transactional
     public UserRegisterResponse registerUser(UserRegisterRequest request) {
         userValidation.validateUserRegisterRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -43,6 +48,7 @@ public class UserServiceImpl implements UserService{
         User user = userMapper.mapToUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         User savedUser = userRepository.save(user);
+        emailService.sendRegistrationEmail(user.getEmail(), user.getFirstName(), user.getLastName());
 
     return userMapper.mapToRegisterResponse(savedUser);
     }

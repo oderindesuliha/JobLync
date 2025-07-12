@@ -7,51 +7,68 @@ import org.peejay.joblync.exceptions.InvalidRoleException;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class UserMapper {
-    public UserRegisterResponse mapToRegisterResponse(User user) {
-        UserRegisterResponse response = new UserRegisterResponse();
-        response.setUserId(user.getId());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setEmail(user.getEmail());
-        response.setActive(user.isActive());
-        response.setDateJoined(LocalDateTime.now());
-        response.setRole(user.getRole());
-
-        return response;
-    }
 
     public User mapToUser(UserRegisterRequest request) {
         User user;
+
         switch (request.getRole()) {
-            case APPLICANT:
-                user = new Applicant();
-                break;
-            case HR_MANAGER:
-                user = new HRManager();
-                break;
-            case RECRUITER:
-                user = new Recruiter();
-                break;
-            case EMPLOYEE:
-                user = new Employee();
-                break;
-            default:
-                throw new InvalidRoleException("Invalid role: " + request.getRole());
+            case APPLICANT -> {
+                Applicant applicant = new Applicant();
+                applicant.setResumeUrl(null);
+                applicant.setPortfolioUrl(null);
+                applicant.setStatus(ApplicationStatus.PENDING);
+                user = applicant;
+            }
+            case HR_MANAGER -> {
+                HRManager hrManager = new HRManager();
+                hrManager.setTeamName(null);
+                hrManager.setSenior(false);
+                hrManager.setEmployees(List.of());
+                user = hrManager;
+            }
+            case RECRUITER -> {
+                Recruiter recruiter = new Recruiter();
+                recruiter.setNumberOfHires(0);
+                user = recruiter;
+            }
+            case EMPLOYEE -> {
+                Employee employee = new Employee();
+                employee.setJobTitle(null);
+                employee.setCompanyName(null);
+                employee.setStartDate(LocalDateTime.now());
+                employee.setHrManager(null);
+                user = employee;
+            }
+            case ADMIN -> user = new User();
+            default -> throw new InvalidRoleException("Invalid role: " + request.getRole());
         }
+
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setPassword(request.getPassword());
-        user.setDateJoined(java.time.LocalDateTime.now());
+        user.setRole(request.getRole());
+        user.setDateJoined(LocalDateTime.now());
         user.setActive(true);
+
         return user;
     }
+
+    public UserRegisterResponse mapToRegisterResponse(User user) {
+        UserRegisterResponse response = new UserRegisterResponse();
+        response.setUserId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setPhoneNumber(user.getPhoneNumber());
+        response.setRole(user.getRole());
+        response.setDateJoined(user.getDateJoined());
+        response.setActive(user.isActive());
+        return response;
     }
-
-
-
+}

@@ -21,7 +21,7 @@ public class User {
     private String password;
     private String profilePicture;
     private LocalDateTime dateJoined = LocalDateTime.now();
-    private boolean isActive = true;
+    private boolean isActive;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(50)")

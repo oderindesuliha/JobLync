@@ -11,6 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "applicant")
 @EqualsAndHashCode(callSuper = true)
+@PrimaryKeyJoinColumn(name = "id")
 public class Applicant extends User {
     private String resumeUrl;
     private String portfolioUrl;
