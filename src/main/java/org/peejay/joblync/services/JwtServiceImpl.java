@@ -11,11 +11,13 @@ public class JwtServiceImpl implements JwtService{
 
     @Override
     public void blackListToken(String token) {
+
         blacklist.add(token);
     }
 
     @Override
     public boolean isBlackListed(String token) {
+
         return blacklist.contains(token);
     }
 }

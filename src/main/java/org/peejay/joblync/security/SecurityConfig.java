@@ -16,8 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-//@EnableWebSecurity
-//@RequiredArgsConstructor
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Autowired
@@ -26,14 +26,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/api/users/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/users/hr/**").hasAuthority("HR_MANAGER")
-                        .requestMatchers("/api/users/recruiter/**").hasAuthority("RECRUITER")
-                        .requestMatchers("/api/users/applicant/**").hasAuthority("APPLICANT")
-                        .requestMatchers("/api/users/employee/**").hasAuthority("EMPLOYEE")
+                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                        .requestMatchers("/api/users/subadmin", "/api/users", "/api/users/disable",
+                                "/api/users/enable", "/api/users/delete").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

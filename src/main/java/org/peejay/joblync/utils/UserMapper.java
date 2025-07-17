@@ -1,6 +1,7 @@
 package org.peejay.joblync.utils;
 
 import org.peejay.joblync.data.models.*;
+import org.peejay.joblync.dtos.requests.SubAdminRequest;
 import org.peejay.joblync.dtos.requests.UserRegisterRequest;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.InvalidRoleException;
@@ -43,7 +44,7 @@ public class UserMapper {
                 employee.setHrManager(null);
                 user = employee;
             }
-            case ADMIN -> user = new User();
+            case ADMIN, SUB_ADMIN -> user = new User();
             default -> throw new InvalidRoleException("Invalid role: " + request.getRole());
         }
 
@@ -56,6 +57,19 @@ public class UserMapper {
         user.setDateJoined(LocalDateTime.now());
         user.setActive(true);
 
+        return user;
+    }
+
+    public User mapToUser(SubAdminRequest request) {
+        User user = new User();
+        String[] nameParts = request.getFullName().trim().split("\\s+", 2);
+        user.setFirstName(nameParts[0]);
+        user.setLastName(nameParts.length > 1 ? nameParts[1] : "");
+        user.setEmail(request.getEmail());
+        user.setPassword(null);
+        user.setRole(Role.SUB_ADMIN);
+        user.setDateJoined(LocalDateTime.now());
+        user.setActive(true);
         return user;
     }
 

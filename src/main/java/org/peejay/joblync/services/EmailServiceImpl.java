@@ -37,4 +37,15 @@ public class EmailServiceImpl implements EmailService {
         message.setText(body);
         mailSender.send(message);
     }
+
+    @Override
+    public void sendPasswordEmail(String to, String password) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Your Joblync Account Password");
+        message.setText("Dear User,\n\nYour account has been created. Your password is: " + password + "\n\nPlease log in and change your password at: https://joblync.com/login\n\nBest,\nJoblync Team");
+        mailSender.send(message);
+    }
+
+
 }

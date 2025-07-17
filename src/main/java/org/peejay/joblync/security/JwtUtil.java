@@ -39,16 +39,15 @@ public class JwtUtil {
         return claims.get("roles", List.class);
     }
 
-    Claims extractClaims(String token) {
+    public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(String.valueOf(signingKey))
+                .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
     private boolean isTokenExpired(String token) {
-
         return extractExpiration(token).before(new Date());
     }
 
@@ -67,5 +66,4 @@ public class JwtUtil {
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
-
 }
