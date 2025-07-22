@@ -18,16 +18,6 @@ public class UserValidations {
                         isBlank(request.getPhoneNumber()) ||
                         isBlank(request.getPassword()) ||
                         request.getRole() == null;
-        boolean isInvalid = isIsInvalid(request, missingFields);
-        if (request != null && request.getRole() == null) {
-            throw new UserException("Role is required");
-        }
-        if (isInvalid) {
-            throw new UserException("Registration failed: please check all fields are filled and formatted correctly");
-        }
-    }
-
-    private static boolean isIsInvalid(UserRegisterRequest request, boolean missingFields) {
         boolean invalidLengths =
                 request != null &&
                         (request.getFirstName().length() > 2 || request.getLastName().length() > 2 );
@@ -43,7 +33,12 @@ public class UserValidations {
                         !request.getPassword().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$"));
 
         boolean isInvalid = missingFields || invalidLengths || invalidEmail || invalidPhone || invalidPassword;
-        return isInvalid;
+        if (request != null && request.getRole() == null) {
+            throw new UserException("Role is required");
+        }
+        if (isInvalid) {
+            throw new UserException("Registration failed: please check all fields are filled and formatted correctly");
+        }
     }
 
     public void validateUserLoginRequest(UserLoginRequest request) {

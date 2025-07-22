@@ -13,17 +13,16 @@ import org.springframework.stereotype.Component;
 @Profile("!test")
 @RequiredArgsConstructor
 public class AdminConfig implements CommandLineRunner {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AppAdminProperties adminProps;
 
     @Override
     public void run(String... args) {
-       String adminEmail = adminProps.getAdmin().getEmail();
-       String subAdminEmail = adminProps.getSubadmin().getEmail();
+        String adminEmail = adminProps.getAdmin().getEmail();
+        String subAdminEmail = adminProps.getSubadmin().getEmail();
 
-       if (!userRepository.existsByEmail(adminEmail)) {
+        if (!userRepository.existsByEmail(adminEmail)) {
             Admin admin = new Admin();
             admin.setEmail(adminEmail);
             admin.setPassword(passwordEncoder.encode(adminProps.getAdmin().getPassword()));
@@ -32,7 +31,6 @@ public class AdminConfig implements CommandLineRunner {
             admin.setLastName("Admin");
             admin.setActive(true);
             admin.setAdminLevel(adminProps.getAdmin().getLevel());
-
             userRepository.save(admin);
         }
 
@@ -40,12 +38,11 @@ public class AdminConfig implements CommandLineRunner {
             Admin subAdmin = new Admin();
             subAdmin.setEmail(subAdminEmail);
             subAdmin.setPassword(passwordEncoder.encode(adminProps.getSubadmin().getPassword()));
-            subAdmin.setRole(Role.ADMIN);
+            subAdmin.setRole(Role.SUB_ADMIN);
             subAdmin.setFirstName("Sub");
             subAdmin.setLastName("Admin");
             subAdmin.setActive(true);
             subAdmin.setAdminLevel(adminProps.getSubadmin().getLevel());
-
             userRepository.save(subAdmin);
         }
     }

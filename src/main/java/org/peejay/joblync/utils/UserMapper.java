@@ -66,7 +66,6 @@ public class UserMapper {
         user.setFirstName(nameParts[0]);
         user.setLastName(nameParts.length > 1 ? nameParts[1] : "");
         user.setEmail(request.getEmail());
-        user.setPassword(null);
         user.setRole(Role.SUB_ADMIN);
         user.setDateJoined(LocalDateTime.now());
         user.setActive(true);

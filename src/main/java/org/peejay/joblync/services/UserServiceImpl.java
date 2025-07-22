@@ -3,12 +3,13 @@ package org.peejay.joblync.services;
 import org.peejay.joblync.data.models.Role;
 import org.peejay.joblync.data.models.User;
 import org.peejay.joblync.data.repositories.UserRepository;
+import org.peejay.joblync.dtos.requests.SubAdminRequest;
 import org.peejay.joblync.dtos.requests.UserLoginRequest;
 import org.peejay.joblync.dtos.requests.UserRegisterRequest;
-import org.peejay.joblync.dtos.requests.SubAdminRequest;
 import org.peejay.joblync.dtos.responses.JwtResponse;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.UserException;
+import org.peejay.joblync.security.JwtUtil;
 import org.peejay.joblync.utils.UserMapper;
 import org.peejay.joblync.validations.UserValidations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +39,14 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     @Override
     @Transactional
     public UserRegisterResponse registerUser(UserRegisterRequest request) {
-        userValidation.validateUserRegisterRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists");
         }
@@ -56,7 +59,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public JwtResponse login(UserLoginRequest request) {
-        userValidation.validateUserLoginRequest(request);
         Optional<User> savedUser = userRepository.findByEmail(request.getEmail());
         if (savedUser.isEmpty()) {
             throw new UserException("Invalid email or password");
@@ -68,12 +70,17 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UserException("Invalid email or password");
         }
-        return new JwtResponse();
+        List<String> roles = List.of(user.getRole().name());
+        String jwtToken = jwtUtil.generateToken(user.getEmail(), roles);
+        JwtResponse response = new JwtResponse();
+        response.setJwtToken(jwtToken);
+        response.setEmail(user.getEmail());
+        response.setRoles(roles);
+        return response;
     }
 
     @Override
     public UserRegisterResponse findUserByEmail(String email) {
-        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
@@ -81,25 +88,24 @@ public class UserServiceImpl implements UserService {
         return userMapper.mapToRegisterResponse(user.get());
     }
 
-    @Override
-    @Transactional
-    public void updatePassword(String email, String password) {
-        userValidation.validateEmail(email);
-        userValidation.validatePassword(password);
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new UserException("User not found");
-        }
-        User existingUser = user.get();
-        existingUser.setPassword(passwordEncoder.encode(password));
-        userRepository.save(existingUser);
-        emailService.sendPasswordResetEmail(email, existingUser.getFirstName(), existingUser.getLastName());
-    }
+//    @Override
+//    @Transactional
+//    public void updatePassword(String email, String password) {
+//        userValidation.validateEmail(email);
+//        userValidation.validatePassword(password);
+//        Optional<User> user = userRepository.findByEmail(email);
+//        if (user.isEmpty()) {
+//            throw new UserException("User not found");
+//        }
+//        User existingUser = user.get();
+//        existingUser.setPassword(passwordEncoder.encode(password));
+//        userRepository.save(existingUser);
+//        emailService.sendPasswordResetEmail(email, existingUser.getFirstName(), existingUser.getLastName());
+//    }
 
     @Override
     @Transactional
     public UserRegisterResponse registerSubAdmin(SubAdminRequest request) {
-        userValidation.validateSubAdminRequest(request);
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists");
         }
@@ -116,7 +122,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void disableUser(String email) {
-        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
@@ -132,7 +137,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void enableUser(String email) {
-        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
@@ -148,7 +152,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(String email) {
-        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
@@ -164,7 +167,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void logout(String email) {
-        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
