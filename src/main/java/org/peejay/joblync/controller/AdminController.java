@@ -6,6 +6,7 @@ import org.peejay.joblync.dtos.requests.SubAdminRequest;
 import org.peejay.joblync.dtos.responses.ApiResponse;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.UserException;
+import org.peejay.joblync.services.AdminService;
 import org.peejay.joblync.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,75 +14,76 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
 @Validated
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
+//@PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
 
     private final UserService userService;
+    private final AdminService adminService;
 
 
     @PostMapping("/register-sub-admin")
     public ResponseEntity<?> registerSubAdmin(@RequestBody SubAdminRequest request) {
-        try {
-            return new ResponseEntity<>(new ApiResponse(true, userService.registerSubAdmin(request)), HttpStatus.CREATED);
-        } catch (UserException e) {
-            return new ResponseEntity<>(new ApiResponse(false, e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
+
+        return ResponseEntity.ok("Welcome to Joblync Admin Panel" + request);
     }
 
 
     @PostMapping("/block-user")
-    public ResponseEntity<?> blockUser(@RequestParam String email) {
+    public ResponseEntity<ApiResponse> blockUser(@RequestParam String email) {
         try {
-            userService.disableUser(email);
+            adminService.disableUser(email);
             return new ResponseEntity<>(new ApiResponse(true, "User blocked"), HttpStatus.OK);
-        } catch (UserException e) {
-            return new ResponseEntity<>(new ApiResponse(false,e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Error blocking user: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PostMapping("/unblock-user")
-    public ResponseEntity<?> unblockUser(@RequestParam String email) {
+    public ResponseEntity<ApiResponse> unblockUser(@RequestParam String email) {
         try {
-            userService.enableUser(email);
+            adminService.enableUser(email);
             return new ResponseEntity<>(new ApiResponse(true, "User unblocked"), HttpStatus.OK);
-        } catch (UserException e) {
-            return new ResponseEntity<>(new ApiResponse(false, e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Error unblocking user: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
     @GetMapping("/get-user-by-email")
-    public ResponseEntity<?> getUserByEmail(@RequestParam String email) {
+    public ResponseEntity<ApiResponse> getUserByEmail(@RequestParam String email) {
         try {
             UserRegisterResponse user = userService.findUserByEmail(email);
             return ResponseEntity.ok(new ApiResponse(true, user));
-        } catch (UserException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, e.getMessage()));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "User not found: " + e.getMessage()), HttpStatus.NOT_FOUND);
         }
     }
-
 
     @GetMapping("/all-users")
-    public ResponseEntity<?> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(new ApiResponse(true, users));
-    }
-
-
-    @DeleteMapping("/delete-user")
-    public ResponseEntity<?> deleteUser(@RequestParam String email) {
+    public ResponseEntity<ApiResponse> getAllUsers() {
         try {
-            userService.deleteUser(email);
-            return new ResponseEntity<>(new ApiResponse(true, "User deleted successfully"), HttpStatus.OK);
-        } catch (UserException e) {
-            return new ResponseEntity<>(new ApiResponse(false, e.getMessage()), HttpStatus.BAD_REQUEST);
+            List<User> users = userService.getAllUsers();
+            return ResponseEntity.ok(new ApiResponse(true, users));
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Error fetching users: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @DeleteMapping("/delete-user")
+    public ResponseEntity<ApiResponse> deleteUser(@RequestParam String email) {
+        try {
+            adminService.deleteUser(email);
+            return new ResponseEntity<>(new ApiResponse(true, "User deleted successfully"), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResponse(false, "Error deleting user: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
+

@@ -1,11 +1,9 @@
 package org.peejay.joblync.services;
 
-import org.peejay.joblync.data.models.Role;
-import org.peejay.joblync.data.models.User;
+import org.peejay.joblync.data.models.*;
+import org.peejay.joblync.data.repositories.HRManagerRepository;
 import org.peejay.joblync.data.repositories.UserRepository;
-import org.peejay.joblync.dtos.requests.SubAdminRequest;
-import org.peejay.joblync.dtos.requests.UserLoginRequest;
-import org.peejay.joblync.dtos.requests.UserRegisterRequest;
+import org.peejay.joblync.dtos.requests.*;
 import org.peejay.joblync.dtos.responses.JwtResponse;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.UserException;
@@ -17,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +26,10 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private HRManagerRepository hrManagerRepository;
+
+    @Autowired
+    private PasswordEncoder password;
 
     @Autowired
     private UserMapper userMapper;
@@ -42,20 +43,81 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     @Override
-    @Transactional
-    public UserRegisterResponse registerUser(UserRegisterRequest request) {
+    public UserRegisterResponse registerApplicant(ApplicantRegisterRequest request) {
+        Applicant user = new Applicant();
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException("Email already exists");
         }
-        User user = userMapper.mapToUser(request);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        User savedUser = userRepository.save(user);
-        emailService.sendRegistrationEmail(user.getEmail(), user.getFirstName(), user.getLastName());
-        return userMapper.mapToRegisterResponse(savedUser);
+
+        setCommonFields(user, request.getFirstName(), request.getLastName(), request.getEmail(), request.getPhoneNumber(), request.getPassword(), request.getProfilePicture());
+        user.setRole(Role.APPLICANT);
+        user.setResumeUrl(request.getResumeUrl());
+        user.setPortfolioUrl(request.getPortfolioUrl());
+        user.setStatus(request.getStatus());
+        return new UserRegisterResponse(userRepository.save(user));
     }
+
+    @Override
+    public UserRegisterResponse registerRecruiter(RecruiterRegisterRequest recruiterRequest) {
+        Recruiter user = new Recruiter();
+        setCommonFields(user, recruiterRequest.getFirstName(), recruiterRequest.getLastName(), recruiterRequest.getEmail(), recruiterRequest.getPhoneNumber(), recruiterRequest.getPassword(), recruiterRequest.getProfilePicture());
+        user.setRole(Role.RECRUITER);
+        user.setCompanyName(recruiterRequest.getCompanyName());
+        user.setCompanyWebsite(recruiterRequest.getCompanyWebsite());
+        return new UserRegisterResponse(userRepository.save(user));
+    }
+
+    @Override
+    public UserRegisterResponse registerAdmin(AdminRegisterRequest adminRequest) {
+        Admin user = new Admin();
+        setCommonFields(user, adminRequest.getFirstName(), adminRequest.getLastName(), adminRequest.getEmail(), adminRequest.getPhoneNumber(), adminRequest.getPassword(), adminRequest.getProfilePicture());
+        user.setRole(Role.ADMIN);
+        user.setAdminLevel(adminRequest.getAdminLevel());
+        return new UserRegisterResponse(userRepository.save(user));
+    }
+
+    @Override
+    public UserRegisterResponse registerHRManager(HRManagerRegisterRequest hrManagerRequest) {
+        HRManager user = new HRManager();
+        setCommonFields(user, hrManagerRequest.getFirstName(), hrManagerRequest.getLastName(), hrManagerRequest.getEmail(), hrManagerRequest.getPhoneNumber(), hrManagerRequest.getPassword(), hrManagerRequest.getProfilePicture());
+        user.setRole(Role.HR_MANAGER);
+        user.setDepartment(hrManagerRequest.getDepartment());
+        return new UserRegisterResponse(userRepository.save(user));
+    }
+
+    @Override
+    public UserRegisterResponse registerEmployee(EmployeeRegisterRequest employeeRequest) {
+        Employee user = new Employee();
+        setCommonFields(user, employeeRequest.getFirstName(), employeeRequest.getLastName(), employeeRequest.getEmail(), employeeRequest.getPhoneNumber(), employeeRequest.getPassword(), employeeRequest.getProfilePicture());
+        user.setRole(Role.EMPLOYEE);
+        user.setJobTitle(employeeRequest.getJobTitle());
+        user.setCompanyName(employeeRequest.getCompanyName());
+        user.setStartDate(employeeRequest.getStartDate());
+
+        HRManager manager = hrManagerRepository.findById(employeeRequest.getHrManagerId())
+                .orElseThrow(() -> new RuntimeException("HR Manager not found"));
+        user.setHrManager(manager);
+
+        return new UserRegisterResponse(userRepository.save(user));
+    }
+
+    private void setCommonFields(User user, String firstName, String lastName, String email,
+                                 String phone, String password, String profilePicture) {
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setPhoneNumber(phone);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setProfilePicture(profilePicture);
+        user.setActive(true);
+        user.setDateJoined(LocalDateTime.now());
+    }
+
 
     @Override
     public JwtResponse login(UserLoginRequest request) {
@@ -67,7 +129,7 @@ public class UserServiceImpl implements UserService {
         if (!user.isActive()) {
             throw new UserException("User is not active");
         }
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!password.matches(request.getPassword(), user.getPassword())) {
             throw new UserException("Invalid email or password");
         }
         List<String> roles = List.of(user.getRole().name());
@@ -88,76 +150,20 @@ public class UserServiceImpl implements UserService {
         return userMapper.mapToRegisterResponse(user.get());
     }
 
-//    @Override
-//    @Transactional
-//    public void updatePassword(String email, String password) {
-//        userValidation.validateEmail(email);
-//        userValidation.validatePassword(password);
-//        Optional<User> user = userRepository.findByEmail(email);
-//        if (user.isEmpty()) {
-//            throw new UserException("User not found");
-//        }
-//        User existingUser = user.get();
-//        existingUser.setPassword(passwordEncoder.encode(password));
-//        userRepository.save(existingUser);
-//        emailService.sendPasswordResetEmail(email, existingUser.getFirstName(), existingUser.getLastName());
-//    }
-
     @Override
     @Transactional
-    public UserRegisterResponse registerSubAdmin(SubAdminRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserException("Email already exists");
-        }
-        User user = userMapper.mapToUser(request);
-        String generatedPassword = generateRandomPassword();
-        user.setPassword(passwordEncoder.encode(generatedPassword));
-        user.setRole(Role.SUB_ADMIN);
-        User savedUser = userRepository.save(user);
-        emailService.sendRegistrationEmail(savedUser.getEmail(), savedUser.getFirstName(), savedUser.getLastName());
-        emailService.sendPasswordEmail(savedUser.getEmail(), generatedPassword);
-        return userMapper.mapToRegisterResponse(savedUser);
-    }
-
-    @Override
-    @Transactional
-    public void disableUser(String email) {
+    public void updatePassword(String email) {
+        userValidation.validateEmail(email);
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty()) {
             throw new UserException("User not found");
         }
         User existingUser = user.get();
-        if (!existingUser.isActive()) {
-            throw new UserException("User is already disabled");
-        }
-        existingUser.setActive(false);
+        existingUser.setPassword(password.encode((CharSequence) password));
         userRepository.save(existingUser);
+        emailService.sendPasswordResetEmail(email, existingUser.getFirstName(), existingUser.getLastName());
     }
 
-    @Override
-    @Transactional
-    public void enableUser(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new UserException("User not found");
-        }
-        User existingUser = user.get();
-        if (existingUser.isActive()) {
-            throw new UserException("User is already enabled");
-        }
-        existingUser.setActive(true);
-        userRepository.save(existingUser);
-    }
-
-    @Override
-    @Transactional
-    public void deleteUser(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()) {
-            throw new UserException("User not found");
-        }
-        userRepository.delete(user.get());
-    }
 
     @Override
     public List<User> getAllUsers() {
@@ -173,12 +179,4 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private String generateRandomPassword() {
-        SecureRandom random = new SecureRandom();
-        StringBuilder password = new StringBuilder();
-        for (int count = 0; count < 8; count++) {
-            password.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-        return password.toString();
-    }
 }

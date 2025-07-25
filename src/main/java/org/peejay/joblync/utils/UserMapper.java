@@ -17,7 +17,7 @@ public class UserMapper {
         User user;
 
         switch (request.getRole()) {
-            case APPLICANT -> {
+            case APPLICANT_OR_ADMIN -> {
                 Applicant applicant = new Applicant();
                 applicant.setResumeUrl(null);
                 applicant.setPortfolioUrl(null);
@@ -26,14 +26,10 @@ public class UserMapper {
             }
             case HR_MANAGER -> {
                 HRManager hrManager = new HRManager();
-                hrManager.setTeamName(null);
-                hrManager.setSenior(false);
-                hrManager.setEmployees(List.of());
                 user = hrManager;
             }
             case RECRUITER -> {
                 Recruiter recruiter = new Recruiter();
-                recruiter.setNumberOfHires(0);
                 user = recruiter;
             }
             case EMPLOYEE -> {
@@ -44,7 +40,7 @@ public class UserMapper {
                 employee.setHrManager(null);
                 user = employee;
             }
-            case ADMIN, SUB_ADMIN -> user = new User();
+            case ADMIN -> user = new User();
             default -> throw new InvalidRoleException("Invalid role: " + request.getRole());
         }
 
@@ -60,17 +56,7 @@ public class UserMapper {
         return user;
     }
 
-    public User mapToUser(SubAdminRequest request) {
-        User user = new User();
-        String[] nameParts = request.getFullName().trim().split("\\s+", 2);
-        user.setFirstName(nameParts[0]);
-        user.setLastName(nameParts.length > 1 ? nameParts[1] : "");
-        user.setEmail(request.getEmail());
-        user.setRole(Role.SUB_ADMIN);
-        user.setDateJoined(LocalDateTime.now());
-        user.setActive(true);
-        return user;
-    }
+
 
     public UserRegisterResponse mapToRegisterResponse(User user) {
         UserRegisterResponse response = new UserRegisterResponse();

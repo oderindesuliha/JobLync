@@ -4,12 +4,11 @@ import org.peejay.joblync.data.models.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Component
 public class RoleMapper {
 
-    public static User mapToSpecificRole(User user) {
+    public static User mapToRole(User user) {
         User mappedUser;
 
         switch (user.getRole()) {
@@ -30,14 +29,10 @@ public class RoleMapper {
             }
             case HR_MANAGER -> {
                 HRManager manager = new HRManager();
-                manager.setTeamName(null);
-                manager.setSenior(false);
-                manager.setEmployees(List.of());
                 mappedUser = manager;
             }
             case RECRUITER -> {
                 Recruiter recruiter = new Recruiter();
-                recruiter.setNumberOfHires(0);
                 mappedUser = recruiter;
             }
             default -> throw new IllegalArgumentException("Unknown role: " + user.getRole());

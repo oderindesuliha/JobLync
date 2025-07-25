@@ -10,6 +10,9 @@ import lombok.EqualsAndHashCode;
 import org.peejay.joblync.data.models.Role;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
+
+
 public class UserRegisterRequest{
     @NotBlank(message = "first name is required")
     private String firstName;
@@ -29,4 +32,6 @@ public class UserRegisterRequest{
     private String password;
 
     private Role role;
+
+
 }

@@ -6,25 +6,28 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    @Autowired
-   private JwtUtil jwtUtil;
-    @Autowired
-    private UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    private final JwtBlacklist jwtBlacklist;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, JwtBlacklist jwtBlacklist) {
+        this.jwtUtil = jwtUtil;
+        this.jwtBlacklist = jwtBlacklist;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -35,6 +38,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
+
+            if (jwtBlacklist.isBlacklisted(jwt)) {
+                logger.warn("Blacklisted JWT token received.");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
             try {
                 email = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
@@ -43,22 +53,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             try {
-                if (jwtUtil.validateToken(jwt, userDetails)) {
+                if (jwtUtil.validateToken(jwt)) {
+                    List<String> roles = jwtUtil.extractRoles(jwt);
+                    List<GrantedAuthority> authorities = roles.stream()
+                            .map(role -> "ROLE_" + role)
+                            .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(email, null, authorities);
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.debug("Authenticated user: {}", email);
+                    logger.debug("Authenticated user: {} with roles {}", email, roles);
                 } else {
                     logger.warn("Invalid JWT token for user: {}", email);
                 }
             } catch (Exception e) {
                 logger.error("Error validating JWT token: {}", e.getMessage());
             }
-        } else if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            logger.debug("No valid Bearer token found in request");
         }
 
         chain.doFilter(request, response);

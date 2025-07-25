@@ -9,9 +9,7 @@ import org.peejay.joblync.data.repositories.ApplicantRepository;
 import org.peejay.joblync.data.repositories.EmployeeRepository;
 import org.peejay.joblync.data.repositories.HRManagerRepository;
 import org.peejay.joblync.data.repositories.UserRepository;
-import org.peejay.joblync.dtos.requests.UserLoginRequest;
-import org.peejay.joblync.dtos.requests.UserRegisterRequest;
-import org.peejay.joblync.dtos.requests.SubAdminRequest;
+import org.peejay.joblync.dtos.requests.*;
 import org.peejay.joblync.dtos.responses.JwtResponse;
 import org.peejay.joblync.dtos.responses.UserRegisterResponse;
 import org.peejay.joblync.exceptions.InvalidRoleException;
@@ -52,6 +50,9 @@ public class UserServiceImplTest {
 
     @Autowired
     private HRManagerRepository hrManagerRepository;
+
+    @Autowired
+    private AdminService adminService;
 
     @BeforeEach
     public void setUp() {
@@ -120,8 +121,8 @@ public class UserServiceImplTest {
 
     @Test
     public void testRegisterUser_applicant_validRequest_shouldSave() {
-        UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
-        UserRegisterResponse response = userService.registerUser(request);
+        ApplicantRegisterRequest request = new ApplicantRegisterRequest();
+        UserRegisterResponse response = userService.registerApplicant(request);
         assertNotNull(response);
         assertEquals("johnadebayo2@gmail.com", response.getEmail());
         assertEquals(Role.APPLICANT, response.getRole());
@@ -134,7 +135,7 @@ public class UserServiceImplTest {
     @Test
     public void testRegisterUser_employee_validRequest_shouldSave() {
         UserRegisterRequest request = registerUserRequest(Role.EMPLOYEE);
-        UserRegisterResponse response = userService.registerUser(request);
+        UserRegisterResponse response = userService.registerEmployee(request);
         assertNotNull(response);
         assertEquals("tola.benson@company.com", response.getEmail());
         assertEquals(Role.EMPLOYEE, response.getRole());
@@ -147,7 +148,7 @@ public class UserServiceImplTest {
     @Test
     public void testRegisterUser_hrManager_validRequest_shouldSave() {
         UserRegisterRequest request = registerUserRequest(Role.HR_MANAGER);
-        UserRegisterResponse response = userService.registerUser(request);
+        UserRegisterResponse response = userService.registerHRManager(request);
         assertNotNull(response);
         assertEquals("sarah.okafor@company.com", response.getEmail());
         assertEquals(Role.HR_MANAGER, response.getRole());
@@ -159,8 +160,8 @@ public class UserServiceImplTest {
 
     @Test
     public void testRegisterUser_recruiter_validRequest_shouldSave() {
-        UserRegisterRequest request = registerUserRequest(Role.RECRUITER);
-        UserRegisterResponse response = userService.registerUser(request);
+        RecruiterRegisterRequest request = new RecruiterRegisterRequest();
+        UserRegisterResponse response = userService.registerRecruiter(request);
         assertNotNull(response);
         assertEquals("chidieze@recruitment.ng", response.getEmail());
         assertEquals(Role.RECRUITER, response.getRole());
@@ -173,8 +174,8 @@ public class UserServiceImplTest {
     @Test
     public void testRegisterUser_duplicateEmail_throwsUserException() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
-        userService.registerUser(request);
-        assertThrows(UserException.class, () -> userService.registerUser(request), "Email already exists");
+        userService.registerApplicant(request);
+        assertThrows(UserException.class, () -> userService.registerApplicant(request), "Email already exists");
     }
 
     @Test
@@ -182,7 +183,7 @@ public class UserServiceImplTest {
         SubAdminRequest request = new SubAdminRequest();
         request.setFullName("Sub Admin");
         request.setEmail("invalid-email");
-        assertThrows(UserException.class, () -> userService.registerSubAdmin(request), "Invalid email format");
+        assertThrows(UserException.class, () -> adminService.registerSubAdmin(request), "Invalid email format");
     }
 
     @Test
@@ -190,7 +191,7 @@ public class UserServiceImplTest {
         SubAdminRequest request = new SubAdminRequest();
         request.setFullName("");
         request.setEmail("subadmin@company.com");
-        assertThrows(UserException.class, () -> userService.registerSubAdmin(request), "Sub-admin registration failed: full name and email are required");
+        assertThrows(UserException.class, () -> adminService.registerSubAdmin(request), "Sub-admin registration failed: full name and email are required");
     }
 
 
@@ -199,7 +200,7 @@ public class UserServiceImplTest {
         SubAdminRequest request = new SubAdminRequest();
         request.setFullName("A".repeat(101));
         request.setEmail("subadmin@company.com");
-        assertThrows(UserException.class, () -> userService.registerSubAdmin(request), "Full name must be between 2 and 100 characters");
+        assertThrows(UserException.class, () -> adminService.registerSubAdmin(request), "Full name must be between 2 and 100 characters");
     }
 
     @Test
@@ -309,7 +310,7 @@ public class UserServiceImplTest {
     public void testUpdatePassword_applicant_validInput_shouldUpdate() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        userService.updatePassword("johnadebayo2@gmail.com", "NewPass1234");
+        userService.updatePassword("johnadebayo2@gmail.com");
         Optional<User> updatedUser = userRepository.findByEmail("johnadebayo2@gmail.com");
         assertTrue(updatedUser.isPresent());
         assertTrue(passwordEncoder.matches("NewPass1234", updatedUser.get().getPassword()));
@@ -319,7 +320,7 @@ public class UserServiceImplTest {
     public void testUpdatePassword_employee_validInput_shouldUpdate() {
         UserRegisterRequest request = registerUserRequest(Role.EMPLOYEE);
         userService.registerUser(request);
-        userService.updatePassword("tola.benson@company.com", "NewPass1234");
+        userService.updatePassword("tola.benson@company.com");
         Optional<User> updatedUser = userRepository.findByEmail("tola.benson@company.com");
         assertTrue(updatedUser.isPresent());
         assertTrue(passwordEncoder.matches("NewPass1234", updatedUser.get().getPassword()));
@@ -329,7 +330,7 @@ public class UserServiceImplTest {
     public void testUpdatePassword_hrManager_validInput_shouldUpdate() {
         UserRegisterRequest request = registerUserRequest(Role.HR_MANAGER);
         userService.registerUser(request);
-        userService.updatePassword("sarah.okafor@company.com", "NewPass1234");
+        userService.updatePassword("sarah.okafor@company.com");
         Optional<User> updatedUser = userRepository.findByEmail("sarah.okafor@company.com");
         assertTrue(updatedUser.isPresent());
         assertTrue(passwordEncoder.matches("NewPass1234", updatedUser.get().getPassword()));
@@ -339,7 +340,7 @@ public class UserServiceImplTest {
     public void testUpdatePassword_recruiter_validInput_shouldUpdate() {
         UserRegisterRequest request = registerUserRequest(Role.RECRUITER);
         userService.registerUser(request);
-        userService.updatePassword("chidieze@recruitment.ng", "NewPass1234");
+        userService.updatePassword("chidieze@recruitment.ng");
         Optional<User> updatedUser = userRepository.findByEmail("chidieze@recruitment.ng");
         assertTrue(updatedUser.isPresent());
         assertTrue(passwordEncoder.matches("NewPass1234", updatedUser.get().getPassword()));
@@ -350,7 +351,7 @@ public class UserServiceImplTest {
     public void testUpdatePassword_invalidPassword_throwsUserException() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        assertThrows(UserException.class, () -> userService.updatePassword("johnadebayo2@gmail.com", "weak"),
+        assertThrows(UserException.class, () -> userService.updatePassword("johnadebayo2@gmail.com"),
                 "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit");
     }
 
@@ -358,7 +359,7 @@ public class UserServiceImplTest {
     public void testDisableUser_applicant_activeUser_shouldDisable() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        userService.disableUser("johnadebayo2@gmail.com");
+        adminService.disableUser("johnadebayo2@gmail.com");
         Optional<User> user = userRepository.findByEmail("johnadebayo2@gmail.com");
         assertTrue(user.isPresent());
         assertFalse(user.get().isActive());
@@ -368,7 +369,7 @@ public class UserServiceImplTest {
     public void testDisableUser_employee_activeUser_shouldDisable() {
         UserRegisterRequest request = registerUserRequest(Role.EMPLOYEE);
         userService.registerUser(request);
-        userService.disableUser("tola.benson@company.com");
+        adminService.disableUser("tola.benson@company.com");
         Optional<User> user = userRepository.findByEmail("tola.benson@company.com");
         assertTrue(user.isPresent());
         assertFalse(user.get().isActive());
@@ -378,7 +379,7 @@ public class UserServiceImplTest {
     public void testDisableUser_hrManager_activeUser_shouldDisable() {
         UserRegisterRequest request = registerUserRequest(Role.HR_MANAGER);
         userService.registerUser(request);
-        userService.disableUser("sarah.okafor@company.com");
+        adminService.disableUser("sarah.okafor@company.com");
         Optional<User> user = userRepository.findByEmail("sarah.okafor@company.com");
         assertTrue(user.isPresent());
         assertFalse(user.get().isActive());
@@ -388,7 +389,7 @@ public class UserServiceImplTest {
     public void testDisableUser_recruiter_activeUser_shouldDisable() {
         UserRegisterRequest request = registerUserRequest(Role.RECRUITER);
         userService.registerUser(request);
-        userService.disableUser("chidieze@recruitment.ng");
+        adminService.disableUser("chidieze@recruitment.ng");
         Optional<User> user = userRepository.findByEmail("chidieze@recruitment.ng");
         assertTrue(user.isPresent());
         assertFalse(user.get().isActive());
@@ -398,16 +399,16 @@ public class UserServiceImplTest {
     public void testDisableUser_alreadyDisabled_throwsUserException() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        userService.disableUser("johnadebayo2@gmail.com");
-        assertThrows(UserException.class, () -> userService.disableUser("johnadebayo2@gmail.com"), "User is already disabled");
+        adminService.disableUser("johnadebayo2@gmail.com");
+        assertThrows(UserException.class, () -> adminService.disableUser("johnadebayo2@gmail.com"), "User is already disabled");
     }
 
     @Test
     public void testEnableUser_applicant_disabledUser_shouldEnable() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        userService.disableUser("johnadebayo2@gmail.com");
-        userService.enableUser("johnadebayo2@gmail.com");
+        adminService.disableUser("johnadebayo2@gmail.com");
+        adminService.enableUser("johnadebayo2@gmail.com");
         Optional<User> user = userRepository.findByEmail("johnadebayo2@gmail.com");
         assertTrue(user.isPresent());
         assertTrue(user.get().isActive());
@@ -417,8 +418,8 @@ public class UserServiceImplTest {
     public void testEnableUser_employee_disabledUser_shouldEnable() {
         UserRegisterRequest request = registerUserRequest(Role.EMPLOYEE);
         userService.registerUser(request);
-        userService.disableUser("tola.benson@company.com");
-        userService.enableUser("tola.benson@company.com");
+        adminService.disableUser("tola.benson@company.com");
+        adminService.enableUser("tola.benson@company.com");
         Optional<User> user = userRepository.findByEmail("tola.benson@company.com");
         assertTrue(user.isPresent());
         assertTrue(user.get().isActive());
@@ -428,8 +429,8 @@ public class UserServiceImplTest {
     public void testEnableUser_hrManager_disabledUser_shouldEnable() {
         UserRegisterRequest request = registerUserRequest(Role.HR_MANAGER);
         userService.registerUser(request);
-        userService.disableUser("sarah.okafor@company.com");
-        userService.enableUser("sarah.okafor@company.com");
+        adminService.disableUser("sarah.okafor@company.com");
+        adminService.enableUser("sarah.okafor@company.com");
         Optional<User> user = userRepository.findByEmail("sarah.okafor@company.com");
         assertTrue(user.isPresent());
         assertTrue(user.get().isActive());
@@ -439,8 +440,8 @@ public class UserServiceImplTest {
     public void testEnableUser_recruiter_disabledUser_shouldEnable() {
         UserRegisterRequest request = registerUserRequest(Role.RECRUITER);
         userService.registerUser(request);
-        userService.disableUser("chidieze@recruitment.ng");
-        userService.enableUser("chidieze@recruitment.ng");
+        adminService.disableUser("chidieze@recruitment.ng");
+        adminService.enableUser("chidieze@recruitment.ng");
         Optional<User> user = userRepository.findByEmail("chidieze@recruitment.ng");
         assertTrue(user.isPresent());
         assertTrue(user.get().isActive());
@@ -450,14 +451,14 @@ public class UserServiceImplTest {
     public void testEnableUser_alreadyEnabled_throwsUserException() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        assertThrows(UserException.class, () -> userService.enableUser("johnadebayo2@gmail.com"), "User is already enabled");
+        assertThrows(UserException.class, () -> adminService.enableUser("johnadebayo2@gmail.com"), "User is already enabled");
     }
 
     @Test
     public void testDeleteUser_applicant_validEmail_shouldDelete() {
         UserRegisterRequest request = registerUserRequest(Role.APPLICANT);
         userService.registerUser(request);
-        userService.deleteUser("johnadebayo2@gmail.com");
+        adminService.deleteUser("johnadebayo2@gmail.com");
         assertEquals(0, userRepository.count());
     }
 
@@ -465,7 +466,7 @@ public class UserServiceImplTest {
     public void testDeleteUser_employee_validEmail_shouldDelete() {
         UserRegisterRequest request = registerUserRequest(Role.EMPLOYEE);
         userService.registerUser(request);
-        userService.deleteUser("tola.benson@company.com");
+        adminService.deleteUser("tola.benson@company.com");
         assertEquals(0, userRepository.count());
     }
 
@@ -473,7 +474,7 @@ public class UserServiceImplTest {
     public void testDeleteUser_hrManager_validEmail_shouldDelete() {
         UserRegisterRequest request = registerUserRequest(Role.HR_MANAGER);
         userService.registerUser(request);
-        userService.deleteUser("sarah.okafor@company.com");
+        adminService.deleteUser("sarah.okafor@company.com");
         assertEquals(0, userRepository.count());
     }
 
@@ -481,13 +482,13 @@ public class UserServiceImplTest {
     public void testDeleteUser_recruiter_validEmail_shouldDelete() {
         UserRegisterRequest request = registerUserRequest(Role.RECRUITER);
         userService.registerUser(request);
-        userService.deleteUser("chidieze@recruitment.ng");
+        adminService.deleteUser("chidieze@recruitment.ng");
         assertEquals(0, userRepository.count());
     }
 
     @Test
     public void testDeleteUser_invalidEmail_throwsUserException() {
-        assertThrows(UserException.class, () -> userService.deleteUser("invalid@company.com"), "User not found");
+        assertThrows(UserException.class, () -> adminService.deleteUser("invalid@company.com"), "User not found");
     }
 
     @Test

@@ -1,20 +1,16 @@
 package org.peejay.joblync.data.models;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
-
 @Data
 @Entity
+@Table(name = "hr_manager")
 @EqualsAndHashCode(callSuper = true)
+@PrimaryKeyJoinColumn(name = "id")
 public class HRManager extends User {
-    private String teamName;
-    private boolean isSenior;
-    @OneToMany(mappedBy = "hrManager", cascade = jakarta.persistence.CascadeType.ALL)
-    private List<Employee> employees;
-
+    private String department;
 }

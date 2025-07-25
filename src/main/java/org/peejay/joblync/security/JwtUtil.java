@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -18,7 +19,10 @@ public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secret;
+
     private Key signingKey;
+
+    private static final long EXPIRATION_TIME = 60 * 60 * 1000;
 
     @PostConstruct
     public void init() {
@@ -26,12 +30,35 @@ public class JwtUtil {
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractUsername(String token) {
-        return extractClaims(token).getSubject();
+
+    public String generateToken(String email, List<String> roles) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("roles", roles)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .compact();
     }
 
-    public Date extractExpiration(String token) {
-        return extractClaims(token).getExpiration();
+
+//    public boolean validateToken(String token, UserDetails userDetails) {
+//        final String email = extractUsername(token);
+//        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+//    }
+
+ m
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String extractUsername(String token) {
+        return extractClaims(token).getSubject();
     }
 
     public List<String> extractRoles(String token) {
@@ -39,7 +66,15 @@ public class JwtUtil {
         return claims.get("roles", List.class);
     }
 
+    public Date extractExpiration(String token) {
+        return extractClaims(token).getExpiration();
+    }
+
     public Claims extractClaims(String token) {
+        return extractAllClaims(token);
+    }
+
+    public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
                 .build()
@@ -49,21 +84,5 @@ public class JwtUtil {
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
-    }
-
-    public boolean validateToken(String token, org.springframework.security.core.userdetails.UserDetails userDetails) {
-        final String email = extractUsername(token);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-    public String generateToken(String email, List<String> roles) {
-        long expirationTime = 60 * 60 * 1000;
-        return Jwts.builder()
-                .setSubject(email)
-                .claim("roles", roles)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
-                .compact();
     }
 }
