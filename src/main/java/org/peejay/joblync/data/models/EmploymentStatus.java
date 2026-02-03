@@ -1,8 +1,8 @@
 package org.peejay.joblync.data.models;
 
 public enum EmploymentStatus {
+    HIRED,
     ACTIVE,
-    INACTIVE,
-    TERMINATED,
-    ON_LEAVE
+    ON_LEAVE,
+    TERMINATED
 }

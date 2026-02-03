@@ -13,13 +13,17 @@ import org.peejay.joblync.utils.JwtUtil;
 import org.peejay.joblync.utils.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -60,13 +64,18 @@ public class UserServiceImpl implements UserService {
         
         String encodedPassword = passwordEncoder.encode(passwordToUse);
 
+        // Restrict role to APPLICANT during registration
+        if (userRegisterRequest.getRole() != null && userRegisterRequest.getRole() != Role.APPLICANT) {
+            throw new IllegalArgumentException("Cannot assign role during registration. Contact administrator.");
+        }
+        
         // Create new user
         User user = new User();
         user.setFirstName(userRegisterRequest.getFirstName());
         user.setLastName(userRegisterRequest.getLastName());
         user.setEmail(userRegisterRequest.getEmail());
         user.setPhoneNumber(userRegisterRequest.getPhoneNumber());
-        user.setRole(userRegisterRequest.getRole() != null ? userRegisterRequest.getRole() : Role.APPLICANT);
+        user.setRole(Role.APPLICANT);
         user.setPassword(encodedPassword);
         user.setHireDate(LocalDateTime.now());
 
@@ -151,9 +160,7 @@ public class UserServiceImpl implements UserService {
             if (user.getBankName() != null) updatedUser.setBankName(user.getBankName());
             if (user.getSalary() != null) updatedUser.setSalary(user.getSalary());
             if (user.getJobLevel() != null) updatedUser.setJobLevel(user.getJobLevel());
-            if (user.getManagerId() != null) updatedUser.setManagerId(user.getManagerId());
-            
-            updatedUser.setLastPromotionDate(user.getLastPromotionDate());
+            if (user.getManager() != null) updatedUser.setManager(user.getManager());
             updatedUser.setTerminationDate(user.getTerminationDate());
             updatedUser.setEmploymentStatus(user.getEmploymentStatus());
             
@@ -218,6 +225,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByManagerId(managerId);
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @Override
     public User changeUserRole(String userId, Role newRole) {
         Optional<User> userOptional = userRepository.findById(userId);
@@ -247,7 +255,7 @@ public class UserServiceImpl implements UserService {
             if (employeeInfo.getBankName() != null) user.setBankName(employeeInfo.getBankName());
             if (employeeInfo.getSalary() != null) user.setSalary(employeeInfo.getSalary());
             if (employeeInfo.getJobLevel() != null) user.setJobLevel(employeeInfo.getJobLevel());
-            if (employeeInfo.getManagerId() != null) user.setManagerId(employeeInfo.getManagerId());
+            if (employeeInfo.getManager() != null) user.setManager(employeeInfo.getManager());
             if (employeeInfo.getHireDate() != null) user.setHireDate(employeeInfo.getHireDate());
             if (employeeInfo.getTerminationDate() != null) user.setTerminationDate(employeeInfo.getTerminationDate());
             if (employeeInfo.getEmploymentStatus() != null) user.setEmploymentStatus(employeeInfo.getEmploymentStatus());

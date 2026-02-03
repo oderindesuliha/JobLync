@@ -1,5 +1,6 @@
 package org.peejay.joblync.controller;
 
+import jakarta.validation.Valid;
 import org.peejay.joblync.data.models.Role;
 import org.peejay.joblync.data.models.User;
 import org.peejay.joblync.dtos.requests.EmployeeInfoRequest;
@@ -91,7 +92,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> updateEmployee(@PathVariable String id, @RequestBody EmployeeInfoRequest employeeInfoRequest) {
+    public ResponseEntity<ApiResponse<User>> updateEmployee(@PathVariable String id, @Valid @RequestBody EmployeeInfoRequest employeeInfoRequest) {
         try {
             User employee = new User();
             employee.setFirstName(employeeInfoRequest.getFirstName());
@@ -109,7 +110,7 @@ public class EmployeeController {
             employee.setBankName(employeeInfoRequest.getBankName());
             employee.setHireDate(employeeInfoRequest.getHireDate());
             employee.setTerminationDate(employeeInfoRequest.getTerminationDate());
-            employee.setManagerId(employeeInfoRequest.getManagerId());
+            employee.setManager(null); // Manager is set via service layer
             employee.setEmploymentStatus(employeeInfoRequest.getEmploymentStatus());
             employee.setSalary(employeeInfoRequest.getSalary());
             employee.setJobLevel(employeeInfoRequest.getJobLevel());

@@ -1,16 +1,15 @@
 package org.peejay.joblync.dtos.requests;
 
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.peejay.joblync.data.models.Role;
 
 @Data
 public class UserRegisterRequest{
-   @NotBlank(message = "first name is required")
+    @NotBlank(message = "first name is required")
     private String firstName;
 
     @NotBlank(message = "last name is required")
@@ -23,9 +22,14 @@ public class UserRegisterRequest{
     @NotBlank(message = "email is required")
     @Email(message = "Email is invalid")
     private String email;
-
+    
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(regexp = ".*[A-Z].*", message = "Password must contain at least one uppercase letter")
+    @Pattern(regexp = ".*[0-9].*", message = "Password must contain at least one number")
     private String password;
     
+    @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
 
     private Role role;

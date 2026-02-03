@@ -11,6 +11,7 @@ import org.peejay.joblync.dtos.requests.JobApplicationRequest;
 import org.peejay.joblync.services.JobApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.Objects;
 
 @Service
+@Transactional
 public class JobApplicationServiceImpl implements JobApplicationService {
 
     private final JobApplicationRepository jobApplicationRepository;
@@ -35,6 +37,11 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
     @Override
     public JobApplication applyForJob(JobApplicationRequest jobApplicationRequest) {
+        // Check for duplicate application
+        if (hasUserAppliedForJob(jobApplicationRequest.getApplicantId(), jobApplicationRequest.getJobPostingId())) {
+            throw new IllegalStateException("User has already applied for this job");
+        }
+        
         // Find applicant
         Optional<User> applicant = userRepository.findById(jobApplicationRequest.getApplicantId());
         if (applicant.isEmpty()) {
@@ -51,7 +58,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         JobApplication application = new JobApplication();
         application.setApplicant(applicant.get());
         application.setJob(jobPosting.get());
-        application.setStatus(Status.PENDING);
+        application.setStatus(Status.APPLIED);
         application.setAppliedAt(LocalDateTime.now());
 
         return jobApplicationRepository.save(application);
@@ -99,6 +106,11 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         if (existingApplication.isPresent()) {
             try {
                 Status newStatus = Status.valueOf(status.toUpperCase());
+                Status currentStatus = existingApplication.get().getStatus();
+                
+                // Validate status transition
+                validateStatusTransition(currentStatus, newStatus);
+                
                 JobApplication application = existingApplication.get();
                 application.setStatus(newStatus);
                 
@@ -108,6 +120,57 @@ public class JobApplicationServiceImpl implements JobApplicationService {
             }
         } else {
             throw new RuntimeException("Job application not found with id: " + Objects.toString(id, "null"));
+        }
+    }
+
+    private void validateStatusTransition(Status current, Status newStatus) {
+        if (current == newStatus) return;
+        
+        // APPLIED can only go to SCREENING or REJECTED
+        if (current == Status.APPLIED) {
+            if (newStatus != Status.SCREENING && newStatus != Status.REJECTED) {
+                throw new IllegalStateException(
+                    "Invalid status transition from " + current + " to " + newStatus
+                );
+            }
+            return;
+        }
+        
+        // SCREENING can only go to INTERVIEW or REJECTED
+        if (current == Status.SCREENING) {
+            if (newStatus != Status.INTERVIEW && newStatus != Status.REJECTED) {
+                throw new IllegalStateException(
+                    "Invalid status transition from " + current + " to " + newStatus
+                );
+            }
+            return;
+        }
+        
+        // INTERVIEW can only go to OFFER or REJECTED
+        if (current == Status.INTERVIEW) {
+            if (newStatus != Status.OFFER && newStatus != Status.REJECTED) {
+                throw new IllegalStateException(
+                    "Invalid status transition from " + current + " to " + newStatus
+                );
+            }
+            return;
+        }
+        
+        // OFFER can only go to HIRED or REJECTED
+        if (current == Status.OFFER) {
+            if (newStatus != Status.HIRED && newStatus != Status.REJECTED) {
+                throw new IllegalStateException(
+                    "Invalid status transition from " + current + " to " + newStatus
+                );
+            }
+            return;
+        }
+        
+        // HIRED and REJECTED are terminal states - no transitions allowed
+        if (current == Status.HIRED || current == Status.REJECTED) {
+            throw new IllegalStateException(
+                "Cannot transition from terminal status " + current + " to " + newStatus
+            );
         }
     }
 

@@ -55,10 +55,13 @@ private String firstName;
     private String bankName;
     private LocalDateTime hireDate;
     private LocalDateTime terminationDate;
-    private String managerId; // ID of the user's manager
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private User manager;
     
     @Enumerated(EnumType.STRING)
-    private EmploymentStatus employmentStatus = EmploymentStatus.ACTIVE;
+    private EmploymentStatus employmentStatus = EmploymentStatus.HIRED;
     
     private Double salary;
     private String jobLevel; // Junior, Mid-level, Senior, Lead, etc.

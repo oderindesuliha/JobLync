@@ -1,5 +1,6 @@
 package org.peejay.joblync.controller;
 
+import jakarta.validation.Valid;
 import org.peejay.joblync.dtos.requests.UserLoginRequest;
 import org.peejay.joblync.dtos.requests.UserRegisterRequest;
 import org.peejay.joblync.dtos.responses.ErrorResponse;
@@ -22,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequest userRegisterRequest) {
         try {
             UserRegisterResponse response = userService.registerUser(userRegisterRequest);
             return ResponseEntity.ok(response);
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody UserLoginRequest userLoginRequest) {
         try {
             JwtResponse response = userService.loginUser(userLoginRequest);
             return ResponseEntity.ok(response);
