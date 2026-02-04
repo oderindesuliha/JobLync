@@ -1,8 +1,9 @@
 package org.peejay.joblync.dtos.requests;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.peejay.joblync.data.models.SkillLevel;
+
+import javax.validation.constraints.NotNull;
 
 @Data
 public class UserSkillRequest {
